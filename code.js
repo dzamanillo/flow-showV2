@@ -1,5 +1,6 @@
-// Flow Show v1
-// By Nelson Taruc
+// Flow Show v2
+// By Daniel Zamanillo
+// Original Code By Nelson Taruc
 // This global array keeps track of arrows in the selection
 // In the future, this may support non-arrows to change opacity of things connected to arrows
 var currentlySelectedArrows = [];
@@ -20,7 +21,7 @@ figma.on("selectionchange", () => {
     checkSelectionForConnectors();
 });
 function retrieveSavedFlowNames() {
-    const savedNameArrayString = figma.currentPage.getPluginData('FLOW-SHOW-NAME-ARRAY');
+    const savedNameArrayString = figma.currentPage.getPluginData("FLOW-SHOW-NAME-ARRAY");
     const savedNameArray = savedNameArrayString.split(",");
     if (savedNameArray == null || savedNameArray.length != 3) {
         const nameArray = ["Flow 1", "Flow 2", "Flow 3"];
@@ -29,9 +30,12 @@ function retrieveSavedFlowNames() {
     return savedNameArray;
 }
 function alertIfNoConnectorsExist() {
-    const nodes = figma.currentPage.findAllWithCriteria({ types: ['CONNECTOR'] });
+    const nodes = figma.currentPage.findAllWithCriteria({ types: ["CONNECTOR"] });
     if (nodes.length == 0) {
-        figma.ui.postMessage({ text: "show-no-connector-alert", currentlySelectedFlow: currentlySelectedFlow });
+        figma.ui.postMessage({
+            text: "show-no-connector-alert",
+            currentlySelectedFlow: currentlySelectedFlow,
+        });
     }
 }
 function checkSelectionForConnectors() {
@@ -40,9 +44,10 @@ function checkSelectionForConnectors() {
     var flowArray = [];
     for (let i = 0; i < aSelection.length; i++) {
         const aNode = figma.currentPage.selection[i];
-        if (aNode.type == 'CONNECTOR') {
+        if (aNode.type == "CONNECTOR") {
             currentlySelectedArrows.push(aNode);
-            if (aNode.getPluginData("show-flow") != null && aNode.getPluginData("show-flow") != "") {
+            if (aNode.getPluginData("show-flow") != null &&
+                aNode.getPluginData("show-flow") != "") {
                 flowArray.push(aNode.getPluginData("show-flow"));
                 // console.log("DEBUG FLOW ARRAY: " + flowArray);
             }
@@ -58,62 +63,69 @@ function checkSelectionForConnectors() {
                 currentlySelectedFlow = "MIXED";
             }
         }
-        figma.ui.postMessage({ text: "show-select-tags", currentlySelectedFlow: currentlySelectedFlow });
+        figma.ui.postMessage({
+            text: "show-select-tags",
+            currentlySelectedFlow: currentlySelectedFlow,
+        });
     }
     else {
         currentlySelectedFlow = "NONE";
-        figma.ui.postMessage({ text: "show-visibility-buttons", currentlySelectedFlow: currentlySelectedFlow });
+        figma.ui.postMessage({
+            text: "show-visibility-buttons",
+            currentlySelectedFlow: currentlySelectedFlow,
+        });
     }
     // console.log(currentlySelectedArrows.length + " arrows selected, status is " + currentlySelectedFlow + " DEBUG FLOW ARRAY: " + flowArray);
 }
 // Calls to "parent.postMessage" from within the HTML page will trigger this
 // callback. The callback will be passed the "pluginMessage" property of the
 // posted message.
-figma.ui.onmessage = msg => {
-    if (msg.type === 'show-all') {
+figma.ui.onmessage = (msg) => {
+    if (msg.type === "show-all") {
         toggleConnectorVisibilty(true, "all");
     }
-    if (msg.type === 'hide-all') {
+    if (msg.type === "hide-all") {
         toggleConnectorVisibilty(false, "all");
     }
-    if (msg.type === 'show-flow-1') {
+    if (msg.type === "show-flow-1") {
         toggleConnectorVisibilty(true, "1");
     }
-    if (msg.type === 'show-flow-2') {
+    if (msg.type === "show-flow-2") {
         toggleConnectorVisibilty(true, "2");
     }
-    if (msg.type === 'show-flow-3') {
+    if (msg.type === "show-flow-3") {
         toggleConnectorVisibilty(true, "3");
     }
-    if (msg.type === 'tag-arrows-1') {
+    if (msg.type === "tag-arrows-1") {
         addTag(currentlySelectedArrows, "1");
     }
-    if (msg.type === 'tag-arrows-2') {
+    if (msg.type === "tag-arrows-2") {
         addTag(currentlySelectedArrows, "2");
     }
-    if (msg.type === 'tag-arrows-3') {
+    if (msg.type === "tag-arrows-3") {
         addTag(currentlySelectedArrows, "3");
     }
-    if (msg.type === 'tag-arrows-null') {
+    if (msg.type === "tag-arrows-null") {
         addTag(currentlySelectedArrows, "");
     }
-    if (msg.type === 'include-locked-true') {
+    if (msg.type === "include-locked-true") {
         includeLockedConnectors = true;
     }
-    if (msg.type === 'include-locked-false') {
+    if (msg.type === "include-locked-false") {
         includeLockedConnectors = false;
     }
-    if (msg.type === 'save-flow-names') {
+    if (msg.type === "save-flow-names") {
         const nameArrayAsString = msg.nameArray.toString();
-        figma.currentPage.setPluginData('FLOW-SHOW-NAME-ARRAY', nameArrayAsString);
+        figma.currentPage.setPluginData("FLOW-SHOW-NAME-ARRAY", nameArrayAsString);
     }
 };
 function toggleConnectorVisibilty(boolean, tagString) {
-    const nodes = figma.currentPage.findAllWithCriteria({ types: ['CONNECTOR'] });
+    const nodes = figma.currentPage.findAllWithCriteria({ types: ["CONNECTOR"] });
     for (let i = 0; i < nodes.length; i++) {
         if (includeLockedConnectors == true) {
             // Note: Plugin will change visibility of locked connector arrows
-            if (tagString == 'all' || tagString == nodes[i].getPluginData("show-flow")) {
+            if (tagString == "all" ||
+                tagString == nodes[i].getPluginData("show-flow")) {
                 nodes[i].visible = boolean;
             }
             else {
@@ -123,7 +135,8 @@ function toggleConnectorVisibilty(boolean, tagString) {
         else {
             // Note: Plugin will ignore locked connector arrows; this is default behavior
             if (nodes[i].locked == false) {
-                if (tagString == 'all' || tagString == nodes[i].getPluginData("show-flow")) {
+                if (tagString == "all" ||
+                    tagString == nodes[i].getPluginData("show-flow")) {
                     nodes[i].visible = boolean;
                 }
                 else {
